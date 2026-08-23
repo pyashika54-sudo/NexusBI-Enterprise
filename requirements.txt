@@ -3,13 +3,13 @@ pandas
 numpy
 scikit-learn
 plotly
-xgboost
-prophet
+fpdf
+openpyxl
 streamlit-option-menu
 streamlit-lottie
 python-dotenv
 langchain
 langchain-openai
 langchain-groq
-langchain
-fpdf
+xgboost
+prophet
