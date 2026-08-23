@@ -10,3 +10,5 @@ streamlit-lottie
 python-dotenv
 langchain
 langchain-openai
+langchain-groq
+langchain
