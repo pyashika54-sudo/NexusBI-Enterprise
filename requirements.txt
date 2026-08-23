@@ -1,0 +1,12 @@
+streamlit
+pandas
+numpy
+scikit-learn
+plotly
+xgboost
+prophet
+streamlit-option-menu
+streamlit-lottie
+python-dotenv
+langchain
+langchain-openai
