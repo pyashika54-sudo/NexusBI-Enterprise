@@ -696,19 +696,20 @@ elif selected_page == "Prediction Lab":
             st.write("Clusters records into 3 discrete segments using K-Means. All numeric variables are automatically normalized via StandardScaler to prevent scale bias.")
             
             # --- SMART RFM FALLBACK LOGIC ---
-        if 'Customer ID' in df.columns and 'Order Date' in df.columns and 'Sales' in df.columns:
+        # Checking for the cleaned, lowercase column names
+        if 'customer_id' in df.columns and 'order_date' in df.columns and 'sales' in df.columns:
             # We have the correct columns, generate RFM!
             rfm_df = df.copy()
-            rfm_df['Order Date'] = pd.to_datetime(rfm_df['Order Date'], dayfirst=True, errors='coerce')
-            current_date = rfm_df['Order Date'].max()
+            rfm_df['order_date'] = pd.to_datetime(rfm_df['order_date'], dayfirst=True, errors='coerce')
+            current_date = rfm_df['order_date'].max()
             
-            cluster_df = rfm_df.groupby('Customer ID').agg({
-                'Order Date': lambda x: (current_date - x.max()).days,
-                'Order ID': 'nunique' if 'Order ID' in rfm_df.columns else 'count',
-                'Sales': 'sum'
+            cluster_df = rfm_df.groupby('customer_id').agg({
+                'order_date': lambda x: (current_date - x.max()).days,
+                'order_id': 'nunique' if 'order_id' in rfm_df.columns else 'count',
+                'sales': 'sum'
             }).reset_index()
             
-            cluster_df.rename(columns={'Order Date': 'Recency', 'Order ID': 'Frequency', 'Sales': 'Monetary'}, inplace=True)
+            cluster_df.rename(columns={'order_date': 'Recency', 'order_id': 'Frequency', 'sales': 'Monetary'}, inplace=True)
             num_cols = ['Recency', 'Frequency', 'Monetary']
             
             # The data we will send to the ML model
@@ -716,7 +717,8 @@ elif selected_page == "Prediction Lab":
         else:
             # Fallback for generic datasets (Original Logic)
             num_cols = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
-            data_for_ml = df|
+            data_for_ml = df 
+        # --------------------------------
             
             if not num_cols:
                 st.error("No numeric columns found in this dataset. Segmentation cannot be performed.")
