@@ -695,7 +695,28 @@ elif selected_page == "Prediction Lab":
             st.subheader("K-Means Cluster Profiling")
             st.write("Clusters records into 3 discrete segments using K-Means. All numeric variables are automatically normalized via StandardScaler to prevent scale bias.")
             
+            # --- SMART RFM FALLBACK LOGIC ---
+        if 'Customer ID' in df.columns and 'Order Date' in df.columns and 'Sales' in df.columns:
+            # We have the correct columns, generate RFM!
+            rfm_df = df.copy()
+            rfm_df['Order Date'] = pd.to_datetime(rfm_df['Order Date'], dayfirst=True, errors='coerce')
+            current_date = rfm_df['Order Date'].max()
+            
+            cluster_df = rfm_df.groupby('Customer ID').agg({
+                'Order Date': lambda x: (current_date - x.max()).days,
+                'Order ID': 'nunique' if 'Order ID' in rfm_df.columns else 'count',
+                'Sales': 'sum'
+            }).reset_index()
+            
+            cluster_df.rename(columns={'Order Date': 'Recency', 'Order ID': 'Frequency', 'Sales': 'Monetary'}, inplace=True)
+            num_cols = ['Recency', 'Frequency', 'Monetary']
+            
+            # The data we will send to the ML model
+            data_for_ml = cluster_df 
+        else:
+            # Fallback for generic datasets (Original Logic)
             num_cols = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
+            data_for_ml = df|
             
             if not num_cols:
                 st.error("No numeric columns found in this dataset. Segmentation cannot be performed.")
@@ -717,7 +738,7 @@ elif selected_page == "Prediction Lab":
                         if run_segmentation:
                             with st.spinner("Normalizing features and running K-Means model..."):
                                 try:
-                                    clustered_df, used_cols = run_kmeans(df, n_clusters=3)
+                                    clustered_df, used_cols = run_kmeans(data_for_ml, n_clusters=3)
                                     st.session_state['df_clustered'] = clustered_df
                                     st.session_state['clustering_cols'] = used_cols
                                     st.success("Segments generated successfully!")
@@ -1195,7 +1216,7 @@ elif selected_page == "AI Strategist":
 
                         llm = ChatGroq(
                             api_key=api_key,
-                            model_name="llama-3.1-8b-instant"
+                           model_name="openai/gpt-oss-20b"
                         )
                         response = llm.invoke(full_prompt)
                         st.markdown(response.content)
